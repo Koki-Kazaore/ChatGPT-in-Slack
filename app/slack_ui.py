@@ -29,7 +29,10 @@ def build_summarize_option_modal(*, context: BoltContext, body: dict) -> dict:
             "Could you summarize the discussion in 200 characters or less?"
         ),
     )
-    thread_ts = body.get("message").get("thread_ts", body.get("message").get("ts"))
+    message = body.get("message")
+    if message is None:
+        raise ValueError("Slack event does not contain a message.")
+    thread_ts = message.get("thread_ts", message.get("ts"))
     where_to_display_options = [
         {
             "text": {
@@ -523,10 +526,10 @@ def build_proofreading_result_modal(
     result: str,
     payload: dict,
 ) -> dict:
-    original_text = extract_state_value(payload, "original_text").get("value")
+    original_text = extract_state_value(payload, "original_text").get("value") or ""
     tone_and_voice = extract_state_value(payload, "tone_and_voice")
     tone_and_voice = (
-        tone_and_voice.get("selected_option").get("value")
+        tone_and_voice.get("selected_option").get("value")  # pytype: disable=attribute-error
         if tone_and_voice.get("selected_option")
         else None
     )
